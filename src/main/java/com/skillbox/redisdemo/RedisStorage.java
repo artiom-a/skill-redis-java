@@ -82,13 +82,16 @@ public class RedisStorage implements Runnable {
 
     }
 
-    public synchronized void listUsers(String user) {
+    public void listUsers(String user) {
+        synchronized (user) {
             System.out.println("- На главной странице показываем пользователя " + user);
+        }
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
     }
 
     public synchronized void topUserDonate(String user) {
