@@ -37,23 +37,9 @@ public class RedisTest {
         while (userCounter <= USERS) {
             redis.addUsers(userCounter);
             log(userCounter++);
-
         }
-
-        new Thread(() -> {
-            for(;;) {
-                for (String user : redis.getOnlineUsers()) {
-                    redis.topUser(user);
-                    try {
-                        Thread.sleep(SLEEP);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
-
-
-//        redis.shutdown();
+        for (; ; ) {
+            redis.topUserDonate();
+        }
     }
 }

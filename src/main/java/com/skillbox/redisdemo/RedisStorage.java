@@ -3,6 +3,7 @@ package com.skillbox.redisdemo;
 import org.redisson.Redisson;
 import org.redisson.api.RKeys;
 import org.redisson.api.RScoredSortedSet;
+import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 import org.redisson.client.RedisConnectionException;
 import org.redisson.config.Config;
@@ -12,7 +13,7 @@ import java.util.Iterator;
 import java.util.Random;
 
 
-public class RedisStorage implements Runnable {
+public class RedisStorage {
 
     // Объект для работы с Redis
     private RedissonClient redisson;
@@ -44,7 +45,7 @@ public class RedisStorage implements Runnable {
             System.out.println((Exc.getMessage()));
         }
         rKeys = redisson.getKeys();
-        rKeys.delete(KEY);
+
         onlineUsers = redisson.getScoredSortedSet(KEY);
     }
 
@@ -71,6 +72,12 @@ public class RedisStorage implements Runnable {
 
     }
 
+    void iterateScores(String user) {
+        double userScore = onlineUsers.getScore(user);
+        double lastUserScore = onlineUsers.lastScore();
+        onlineUsers.addScore(user, userScore + lastUserScore);
+    }
+
     int calculateUsersNumber() {
         //ZCOUNT ONLINE_USERS
         return onlineUsers.count(Double.NEGATIVE_INFINITY, true, Double.POSITIVE_INFINITY, true);
@@ -82,39 +89,36 @@ public class RedisStorage implements Runnable {
 
     }
 
-    public synchronized void listUsers(String user) {
-            System.out.println("- На главной странице показываем пользователя " + user);
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-    }
-
-    public void topUser(String user) {
-        Random random = new Random();
-        if (random.nextInt(100) > 50) {
-            System.out.println("\t-> Пользователь " + user + " оплатил vip услугу");
-            double userScore = onlineUsers.getScore(user);
-            double lastUserScore = onlineUsers.lastScore();
-            onlineUsers.addScore(user, userScore+lastUserScore);
-            System.out.println("- На главной странице показываем пользователя " + user);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } else {
-            listUsers(user);
+    public void listUsers(String user) {
+        System.out.println("- На главной странице показываем пользователя " + user);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
+
+    public void topUserDonate() {
+        onlineUsers.stream().forEach((user) -> {
+            try {
+                if (new Random().nextInt(10) > 8) {
+                    String randomUser = String.valueOf(new Random().nextInt(this.calculateUsersNumber()) + 1);
+                    System.out.println("\t-> Пользователь " + randomUser + " оплатил vip услугу");
+                    System.out.println("- На главной странице показываем пользователя " + randomUser);
+                    Thread.sleep(2000);
+                    iterateScores(randomUser);
+                }
+                listUsers(user);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+    }
+
 
     public RScoredSortedSet<String> getOnlineUsers() {
         return onlineUsers;
     }
 
-    @Override
-    public void run() {
-
-    }
 }
