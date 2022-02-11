@@ -19,12 +19,12 @@ public class RedisTest {
     private static final int USERS = 20;
 
     // Также мы добавим задержку между посещениями
-    private static final int SLEEP = 10; // 1 миллисекунда
+    private static final int SLEEP = 1000; // 1 миллисекунда
 
     private static final SimpleDateFormat DF = new SimpleDateFormat("HH:mm:ss");
 
     private static void log(int userId) {
-        String log = String.format("[%s] Пользователь %d онлайн ", DF.format(new Date()), userId);
+        String log = String.format("[%s] Пользователь %d зарегистрирован ", DF.format(new Date()), userId);
         System.out.println(log);
     }
 
@@ -32,41 +32,23 @@ public class RedisTest {
 
         RedisStorage redis = new RedisStorage();
         redis.init();
-        // Эмулируем 10 секунд работы сайта
+        // Эмулируем регистрацию пользователей
         int userCounter = 1;
         while (userCounter <= USERS) {
-            redis.logPageVisit(userCounter);
-            Thread.sleep(SLEEP);
+            redis.addUsers(userCounter);
             log(userCounter++);
-        }
-/*        new Thread(redis::listUsers).start();
 
-        new Thread(() -> {
-            Random randomUser = new Random();
-            redis.topUserDonate(String.valueOf(randomUser.nextInt(9) + 1));
-        }).start();*/
+        }
 
         new Thread(() -> {
             for(;;) {
                 for (String user : redis.getOnlineUsers()) {
-                    redis.listUsers(user);
+                    redis.topUser(user);
                     try {
-                        Thread.sleep(2000);
+                        Thread.sleep(SLEEP);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-            }
-        }).start();
-        new Thread(() -> {
-            Random r1 = new Random();
-            for(;;) {
-                if (r1.nextInt(100) > 60)
-                    redis.topUserDonate(String.valueOf(r1.nextInt(19) + 1));
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
         }).start();

@@ -57,7 +57,7 @@ public class RedisStorage implements Runnable {
     }
 
     // Фиксирует посещение пользователем страницы
-    void logPageVisit(int user_id) {
+    void addUsers(int user_id) {
         double timestamp = getTs();
         //ZADD ONLINE_USERS
         onlineUsers.add(timestamp, String.valueOf(user_id));
@@ -91,20 +91,21 @@ public class RedisStorage implements Runnable {
             }
     }
 
-    public synchronized void topUserDonate(String user) {
+    public void topUser(String user) {
         Random random = new Random();
-        System.out.println("\t-> Пользователь " + user + " оплатил vip услугу");
-        double userScore = onlineUsers.getScore(user);
-        double lastUserScore = onlineUsers.lastScore();
-
-
-        if (random.nextInt(100) > 10) {
+        if (random.nextInt(100) > 50) {
+            System.out.println("\t-> Пользователь " + user + " оплатил vip услугу");
+            double userScore = onlineUsers.getScore(user);
+            double lastUserScore = onlineUsers.lastScore();
             onlineUsers.addScore(user, userScore+lastUserScore);
+            System.out.println("- На главной странице показываем пользователя " + user);
             try {
-                Thread.sleep(10);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+        } else {
+            listUsers(user);
         }
     }
 
